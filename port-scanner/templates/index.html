@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NetScan | TCP Port Scanner</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Poppins',sans-serif;
+            background:#0b1120;
+            color:white;
+            min-height:100vh;
+            overflow-x:hidden;
+        }
+
+        body::before{
+            content:'';
+            position:fixed;
+            width:100%;
+            height:100%;
+            background:
+            radial-gradient(circle at top left,#1e3a8a,transparent 30%),
+            radial-gradient(circle at bottom right,#0f766e,transparent 30%);
+            z-index:-1;
+        }
+
+        .container{
+            width:90%;
+            max-width:1200px;
+            margin:auto;
+            padding:40px 20px;
+        }
+
+        .header{
+            text-align:center;
+            margin-bottom:35px;
+        }
+
+        .header h1{
+            font-size:4rem;
+            color:#38bdf8;
+            font-weight:700;
+        }
+
+        .header p{
+            color:#cbd5e1;
+            margin-top:10px;
+            font-size:1.1rem;
+        }
+
+        .scanner-box{
+            background:rgba(15,23,42,0.85);
+            border:1px solid rgba(255,255,255,0.1);
+            backdrop-filter:blur(12px);
+            border-radius:20px;
+            padding:30px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .banner{
+            background:#020617;
+            border-radius:14px;
+            padding:20px;
+            overflow-x:auto;
+            margin-bottom:25px;
+            border:1px solid #1e293b;
+        }
+
+        .banner pre{
+            color:#38bdf8;
+            font-size:11px;
+            line-height:1.3;
+        }
+
+        .scan-form{
+            display:flex;
+            gap:15px;
+            flex-wrap:wrap;
+        }
+
+        .scan-form input{
+            flex:1;
+            min-width:250px;
+            padding:15px;
+            border:none;
+            outline:none;
+            border-radius:12px;
+            background:#1e293b;
+            color:white;
+            font-size:16px;
+        }
+
+        .scan-form input::placeholder{
+            color:#94a3b8;
+        }
+
+        .scan-form button{
+            padding:15px 28px;
+            border:none;
+            border-radius:12px;
+            background:linear-gradient(135deg,#0ea5e9,#2563eb);
+            color:white;
+            font-size:16px;
+            font-weight:600;
+            cursor:pointer;
+            transition:0.3s ease;
+        }
+
+        .scan-form button:hover{
+            transform:translateY(-2px);
+            box-shadow:0 10px 20px rgba(37,99,235,0.3);
+        }
+
+        .loading{
+            margin-top:25px;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            background:rgba(15,118,110,0.15);
+            border:1px solid rgba(45,212,191,0.3);
+            padding:15px;
+            border-radius:12px;
+        }
+
+        .loader{
+            width:22px;
+            height:22px;
+            border:3px solid rgba(255,255,255,0.2);
+            border-top:3px solid #2dd4bf;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+        }
+
+        @keyframes spin{
+            100%{
+                transform:rotate(360deg);
+            }
+        }
+
+    
+
+        .result-section{
+            margin-top:35px;
+        }
+
+        .result-header{
+            margin-bottom:25px;
+        }
+
+        .result-header h2{
+            font-size:2rem;
+            margin-bottom:8px;
+        }
+
+        .result-header span{
+            color:#38bdf8;
+            font-weight:600;
+        }
+
+        .stats{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:20px;
+            margin-bottom:30px;
+        }
+
+        .card{
+            padding:25px;
+            border-radius:18px;
+            text-align:center;
+            background:rgba(15,23,42,0.85);
+            border:1px solid rgba(255,255,255,0.08);
+        }
+
+        .card h3{
+            font-size:1rem;
+            margin-bottom:12px;
+            color:#cbd5e1;
+        }
+
+        .card p{
+            font-size:2rem;
+            font-weight:700;
+        }
+
+        .total p{
+            color:#38bdf8;
+        }
+
+        .open p{
+            color:#22c55e;
+        }
+
+        .closed p{
+            color:#ef4444;
+        }
+
+        .table-container{
+            overflow-x:auto;
+            border-radius:18px;
+            background:rgba(15,23,42,0.85);
+            border:1px solid rgba(255,255,255,0.08);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th{
+            background:#1e293b;
+            color:#38bdf8;
+            padding:18px;
+            text-align:left;
+        }
+
+        tr{
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        }
+
+        tr:hover{
+            background:rgba(255,255,255,0.03);
+        }
+
+        td{
+            padding:18px;
+        }
+
+        .risk{
+            padding:6px 14px;
+            border-radius:999px;
+            font-size:13px;
+            font-weight:600;
+        }
+
+        .high-risk{
+            background:rgba(239,68,68,0.2);
+            color:#f87171;
+        }
+
+        .web-service{
+            background:rgba(34,197,94,0.2);
+            color:#4ade80;
+        }
+
+        .database{
+            background:rgba(168,85,247,0.2);
+            color:#c084fc;
+        }
+
+        .mail{
+            background:rgba(251,191,36,0.2);
+            color:#facc15;
+        }
+
+        .normal{
+            background:rgba(148,163,184,0.15);
+            color:#cbd5e1;
+        }
+
+        .scan-footer{
+            margin-top:20px;
+            text-align:right;
+            color:#cbd5e1;
+        }
+
+        footer{
+            text-align:center;
+            margin-top:50px;
+            padding:20px;
+            color:#94a3b8;
+            font-size:14px;
+            border-top:1px solid rgba(255,255,255,0.08);
+        }
+
+        footer span{
+            color:#38bdf8;
+            font-weight:600;
+        }
+
+        @media(max-width:768px){
+
+            .header h1{
+                font-size:2.8rem;
+            }
+
+            .scan-form{
+                flex-direction:column;
+            }
+
+            .scan-form button{
+                width:100%;
+            }
+
+            .banner pre{
+                font-size:8px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>NetScan</h1>
+        <p>Advanced TCP Port Scanner</p>
+    </div>
+
+    <div class="scanner-box">
+
+        <div class="banner">
+<pre>
+███╗   ██╗███████╗████████╗███████╗ ██████╗ █████╗ ███╗   ██╗
+████╗  ██║██╔════╝╚══██╔══╝██╔════╝██╔════╝██╔══██╗████╗  ██║
+██╔██╗ ██║█████╗     ██║   ███████╗██║     ███████║██╔██╗ ██║
+██║╚██╗██║██╔══╝     ██║   ╚════██║██║     ██╔══██║██║╚██╗██║
+██║ ╚████║███████╗   ██║   ███████║╚██████╗██║  ██║██║ ╚████║
+╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝
+</pre>
+        </div>
+
+        <form method="POST" class="scan-form" onsubmit="showLoading()">
+
+            <input type="text"
+                   name="target"
+                   placeholder="Enter Domain or IP Address"
+                   required>
+
+            <button type="submit">
+                Scan Popular Ports
+            </button>
+
+        </form>
+
+        <div id="loading" class="loading" style="display:none;">
+            <div class="loader"></div>
+            <span>Scanning Target... Please Wait</span>
+        </div>
+
+    </div>
+
+    {% if target %}
+
+    <div class="result-section">
+
+        <div class="result-header">
+            <h2>Scan Results</h2>
+            <p>Target : <span>{{ target }}</span></p>
+        </div>
+
+        <div class="stats">
+
+            <div class="card total">
+                <h3>Total Ports</h3>
+                <p>{{ total_ports }}</p>
+            </div>
+
+            <div class="card open">
+                <h3>Open Ports</h3>
+                <p>{{ open_count }}</p>
+            </div>
+
+            <div class="card closed">
+                <h3>Closed Ports</h3>
+                <p>{{ closed_count }}</p>
+            </div>
+
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <tr>
+                    <th>Port</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for port, service in results %}
+
+                <tr>
+
+                    <td>{{ port }}</td>
+
+                    <td>{{ service }}</td>
+
+ <td>
+
+    <!-- Remote Access -->
+    {% if port in [21,22,23,69,445,3389,5900] %}
+
+    <span class="risk high-risk">
+        Remote Access
+    </span>
+
+    <!-- Web Services -->
+    {% elif port in [80,81,443,444,8080,8443,8000,8888] %}
+
+    <span class="risk web-service">
+        Web Service
+    </span>
+
+    <!-- Database -->
+    {% elif port in [1433,1521,3306,5432,6379,27017] %}
+
+    <span class="risk database">
+        Database
+    </span>
+
+    <!-- Mail -->
+    {% elif port in [25,110,143,465,587,993,995] %}
+
+    <span class="risk mail">
+        Mail Service
+    </span>
+
+    <!-- DNS -->
+    {% elif port == 53 %}
+
+    <span class="risk web-service">
+        DNS Service
+    </span>
+
+    <!-- FTP -->
+    {% elif port in [20,21] %}
+
+    <span class="risk high-risk">
+        FTP Service
+    </span>
+
+    <!-- SMB -->
+    {% elif port in [135,137,138,139,445] %}
+
+    <span class="risk high-risk">
+        Windows SMB
+    </span>
+
+    <!-- SSH -->
+    {% elif port == 22 %}
+
+    <span class="risk high-risk">
+        SSH Access
+    </span>
+
+    <!-- Telnet -->
+    {% elif port == 23 %}
+
+    <span class="risk high-risk">
+        Telnet
+    </span>
+
+    <!-- RDP -->
+    {% elif port == 3389 %}
+
+    <span class="risk high-risk">
+        Remote Desktop
+    </span>
+
+    <!-- Docker -->
+    {% elif port == 2375 or port == 2376 %}
+
+    <span class="risk database">
+        Docker API
+    </span>
+
+    <!-- Kubernetes -->
+    {% elif port == 6443 %}
+
+    <span class="risk database">
+        Kubernetes
+    </span>
+
+    <!-- Redis -->
+    {% elif port == 6379 %}
+
+    <span class="risk database">
+        Redis
+    </span>
+
+    <!-- MongoDB -->
+    {% elif port == 27017 %}
+
+    <span class="risk database">
+        MongoDB
+    </span>
+
+    <!-- Elasticsearch -->
+    {% elif port == 9200 %}
+
+    <span class="risk database">
+        ElasticSearch
+    </span>
+
+    <!-- VPN -->
+    {% elif port in [500,1194,1701,1723] %}
+
+    <span class="risk web-service">
+        VPN Service
+    </span>
+
+    {% else %}
+
+    <span class="risk normal">
+        Unknown Service
+    </span>
+
+    {% endif %}
+
+</td>
+
+                </tr>
+
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <div class="scan-footer">
+            ⏱ Scan completed in <strong>{{ scan_time }}</strong> seconds
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    <footer>
+        © 2026 NetScan Port Scanner | Developed By <span>PRIYA A S</span>
+    </footer>
+
+</div>
+
+<script>
+
+function showLoading(){
+
+    document.getElementById("loading").style.display = "flex";
+
+}
+
+</script>
+
+</body>
+</html>
